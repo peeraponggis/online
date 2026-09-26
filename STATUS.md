@@ -266,9 +266,13 @@ C:\LocalAI\courseweb\
 - state อยู่ใน localStorage แก้ได้จากฝั่ง client
 - **ห้ามใช้ขายจริง** จนกว่าจะต่อ SlipOK/EasySlip + เก็บสลิบใน private bucket
 
-### โปรเจกต์ยังไม่มี git repository
-`git rev-parse` ยืนยันแล้วว่าไม่ใช่ repo → **ควรรัน `git init`** เพื่อมีประวัติการแก้ไข
-(`.gitignore` เตรียมไว้แล้ว)
+### โปรเจกต์มี git แล้ว
+ตั้ง `git init` และ commit ครั้งแรกแล้ว (`2e2c487` · 50 ไฟล์ · 10,500 บรรทัด)
+- มี `.gitignore` ตัด `node_modules/` `.next/` `out/` `.env*` แล้ว
+- มี `.gitattributes` บังคับ LF (แต่ `.ps1` เป็น CRLF เพราะ PowerShell ต้องการ)
+- **ยังไม่มี remote** — ถ้าจะ push ต้องสร้าง repo ที่ GitHub/GitLab ก่อน
+- `git config user.name/user.email` ยังไม่ได้ตั้งระดับเครื่อง
+  (commit นี้ใช้ `-c` แบบครั้งเดียว) ถ้าจะ commit ครั้งถัดไปต้องใส่ `-c` อีก หรือตั้ง config เอง
 
 ### PowerShell บนเครื่องนี้
 - **ห้ามใช้ `&&`** — PowerShell 5.1 ไม่รองรับ ใช้ `;` แทน
@@ -292,7 +296,8 @@ C:\LocalAI\courseweb\
 4. Cloudflare Pages deploy
 
 ### C — สุขอนามัยของโปรเจกต์
-1. `git init` + commit ครั้งแรก (มี `.gitignore` เตรียมแล้ว) — **ยังไม่มี version control**
+1. ตั้ง `git config user.name` / `user.email` ระดับเครื่อง (ตอนนี้ใช้ `-c` แบบครั้งเดียว)
+2. สร้าง remote repo แล้ว `git remote add origin` + push
 
 ---
 

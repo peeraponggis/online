@@ -138,7 +138,9 @@ C:\LocalAI\courseweb\
 
 ## ข้อควรระวัง
 
-- **ยังไม่มี git repository** — ควรรัน `git init` เพื่อมีประวัติการแก้ไข
+- **ยังไม่มี remote** — repo อยู่ในเครื่องอย่างเดียว ถ้าเครื่องเสียงานจะหาย
+- **ยังไม่ได้ตั้ง git identity ระดับเครื่อง** — commit ใหม่ต้องใช้
+  `git -c user.name="..." -c user.email="..." commit` หรือตั้ง config เองก่อน
 - **state อยู่ใน localStorage** — แก้ได้จากฝั่ง client ไม่ใช่แหล่งความจริง
 - **ยังไม่มี Supabase** — ทุกอย่างเป็น client-side mock
 - **`data/courses.js` เป็น CommonJS** — ห้ามเพิ่ม `"type": "module"` ใน `package.json`
