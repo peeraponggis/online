@@ -179,3 +179,7 @@ C:\LocalAI\courseweb\
 | `IMPORT_GUIDE.html` | ฟิลด์ทุกตัวของคอร์ส + ตัวอย่างค่า |
 | `.kilo-workflow/02-decisions/02-final-decisions.md` | ADR 4 ข้อพร้อมเหตุผล |
 | `.kilo-workflow/03-implementation/01-implementation-plan.md` | แผนงาน + สถานะราย phase |
+
+---
+
+*repo นี้สร้างโดย lung pee — ดู https://github.com/peeraponggis/online*
