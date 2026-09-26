@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คอร์สออนไลน์ — เรียนรู้ทุกสกิล</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:'Sarabun','Tahoma',sans-serif;background:#f6fdf9;color:#14532d}
+  .card{transition:all .3s ease}
+  .card:hover{transform:translateY(-6px);box-shadow:0 18px 35px -12px rgba(22,163,74,.35)}
+  .fade{animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+  .hidden-x{display:none!important}
+  ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#eef7f1}
+  ::-webkit-scrollbar-thumb{background:#34d399;border-radius:4px}
+  input[type=range]{accent-color:#10b981}
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-emerald-100">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-2 shrink-0">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white grid place-items-center text-lg font-bold">L</div>
+      <span class="text-xl font-bold text-emerald-700 hidden sm:block">คอร์สออนไลน์</span>
+    </div>
+    <nav class="hidden md:flex gap-6 text-sm font-medium">
+      <a href="#courses" class="hover:text-emerald-600">คอร์สทั้งหมด</a>
+      <a href="#plans" class="hover:text-emerald-600">แพ็กเกจ</a>
+      <a href="#mycourses" class="hover:text-emerald-600">คอร์สของฉัน</a>
+    </nav>
+    <div class="flex items-center gap-2">
+      <button onclick="openCart()" class="relative px-3 py-2 rounded-lg text-emerald-700 hover:bg-emerald-50 text-sm">
+        🛒 ตะกร้า
+        <span id="cartCount" class="hidden-x absolute -top-1 -right-1 bg-emerald-600 text-white text-xs rounded-full w-5 h-5 grid place-items-center">0</span>
+      </button>
+      <button onclick="alert('หน้านี้เป็นต้นแบบ (mockup) — ยังไม่ได้เชื่อมระบบสมาชิกจริง')" class="px-4 py-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 text-sm shadow">สมัครสมาชิก</button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 py-16 border-b border-emerald-100">
+  <div class="max-w-3xl mx-auto px-4 text-center">
+    <div class="text-5xl mb-3">🌿</div>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-emerald-800 mb-4">เรียนรู้ทุกสกิล อย่างเป็นธรรมชาติ</h1>
+    <p class="text-emerald-700 mb-6">ธีมสบายตา เนื้อหาจากผู้สอนมืออาชีพ เข้าเรียนได้ทุกที่ทุกเวลา</p>
+    <div class="flex justify-center gap-3">
+      <button onclick="document.getElementById('courses').scrollIntoView()" class="px-6 py-3 rounded-xl bg-emerald-500 text-white font-semibold hover:bg-emerald-600 shadow">ดูคอร์สทั้งหมด</button>
+      <button onclick="document.getElementById('plans').scrollIntoView()" class="px-6 py-3 rounded-xl bg-white border-2 border-emerald-400 text-emerald-700 font-semibold hover:bg-emerald-50">ดูแพ็กเกจ</button>
+    </div>
+    <div class="mt-8 grid grid-cols-3 gap-4 max-w-md mx-auto text-center">
+      <div><div id="statCourses" class="text-2xl font-extrabold text-emerald-600">0</div><div class="text-xs text-emerald-700">คอร์ส</div></div>
+      <div><div id="statStudents" class="text-2xl font-extrabold text-emerald-600">0</div><div class="text-xs text-emerald-700">นักเรียน</div></div>
+      <div><div id="statRating" class="text-2xl font-extrabold text-emerald-600">0.0</div><div class="text-xs text-emerald-700">คะแนนเฉลี่ย</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COURSES + FILTER ===== -->
+<section id="courses" class="py-12">
+  <div class="max-w-7xl mx-auto px-4">
+    <h2 class="text-2xl md:text-3xl font-extrabold text-emerald-800 text-center mb-8">คอร์สทั้งหมด</h2>
+
+    <!-- Search + Filter -->
+    <div class="bg-white rounded-2xl border border-emerald-100 p-4 shadow-sm mb-8">
+      <div class="grid md:grid-cols-4 gap-4">
+        <div>
+          <label class="text-xs font-semibold text-emerald-700">ค้นหา</label>
+          <input id="q" oninput="render()" placeholder="ชื่อคอร์ส หรือ คำอธิบาย..."
+                 class="mt-1 w-full px-3 py-2 rounded-lg border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 text-sm">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-emerald-700">หมวดหมู่</label>
+          <select id="fCat" onchange="render()" class="mt-1 w-full px-3 py-2 rounded-lg border border-emerald-200 text-sm"></select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-emerald-700">ระดับ</label>
+          <select id="fLevel" onchange="render()" class="mt-1 w-full px-3 py-2 rounded-lg border border-emerald-200 text-sm">
+            <option value="ทั้งหมด">ทั้งหมด</option>
+            <option>ง่าย</option><option>ปานกลาง</option><option>ยาก</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-emerald-700">ราคาสูงสุด: <span id="priceLbl" class="text-emerald-600">2000</span> ฿</label>
+          <input id="fPrice" type="range" min="390" max="2000" step="50" value="2000" oninput="document.getElementById('priceLbl').textContent=this.value; render()" class="mt-2 w-full">
+        </div>
+      </div>
+      <div class="flex items-center justify-between mt-4 pt-3 border-t border-emerald-100">
+        <span id="resultCount" class="text-sm text-emerald-700"></span>
+        <select id="fSort" onchange="render()" class="px-3 py-1.5 rounded-lg border border-emerald-200 text-sm">
+          <option value="pop">ยอดนิยมสูงสุด</option>
+          <option value="low">ราคา: ต่ำ → สูง</option>
+          <option value="high">ราคา: สูง → ต่ำ</option>
+          <option value="rating">คะแนนสูงสุด</option>
+          <option value="new">เรียงตาม id</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+  </div>
+</section>
+
+<!-- ===== PLANS ===== -->
+<section id="plans" class="py-14 bg-emerald-50/70 border-y border-emerald-100">
+  <div class="max-w-6xl mx-auto px-4">
+    <h2 class="text-2xl md:text-3xl font-extrabold text-emerald-800 text-center mb-3">แพ็กเกจสมาชิก</h2>
+    <p class="text-center text-emerald-600 mb-10">เลือกแบบที่เหมาะกับคุณ — แลกเครดิตเข้าคอร์สได้ทันที</p>
+    <div id="planGrid" class="grid md:grid-cols-3 gap-6"></div>
+  </div>
+</section>
+
+<!-- ===== MY COURSES ===== -->
+<section id="mycourses" class="py-14">
+  <div class="max-w-7xl mx-auto px-4">
+    <h2 class="text-2xl md:text-3xl font-extrabold text-emerald-800 text-center mb-3">คอร์สของฉัน</h2>
+    <p class="text-center text-emerald-600 mb-8">คอร์สที่คุณซื้อหรือแลกเครดิตได้</p>
+    <div id="myGrid" class="grid md:grid-cols-2 gap-4"></div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="bg-emerald-900 text-emerald-100 py-10">
+  <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-3 gap-8 text-sm">
+    <div>
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-9 h-9 rounded-lg bg-emerald-500 grid place-items-center text-white font-bold">L</div>
+        <span class="font-bold text-white text-lg">คอร์สออนไลน์</span>
+      </div>
+      <p class="text-emerald-300">แพลตฟอร์มคอร์สออนไลน์ธีมธรรมชาติ เน้นความสบายตาในการอ่าน</p>
+    </div>
+    <div>
+      <h4 class="text-white font-bold mb-3">ลิงก์</h4>
+      <ul class="space-y-2 text-emerald-300">
+        <li><a href="#courses" class="hover:text-white">คอร์สทั้งหมด</a></li>
+        <li><a href="#plans" class="hover:text-white">แพ็กเกจ</a></li>
+        <li><a href="#mycourses" class="hover:text-white">คอร์สของฉัน</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="text-white font-bold mb-3">ติดต่อเรา</h4>
+      <ul class="space-y-2 text-emerald-300">
+        <li>อีเมล: hello@course.example</li>
+        <li>โทร: 02-xxx-xxxx</li>
+        <li>กรุงเทพมหานคร ประเทศไทย</li>
+      </ul>
+    </div>
+  </div>
+  <div class="border-t border-emerald-800 mt-8 pt-5 text-center text-xs text-emerald-400">
+    © 2026 คอร์สออนไลน์ — ต้นแบบสาธิต · <a href="IMPORT_GUIDE.html" class="underline">คู่มือนำเข้าคอร์ส</a>
+  </div>
+</footer>
+
+<!-- ===== MODAL ROOT ===== -->
+<div id="modal" class="hidden-x fixed inset-0 z-50 bg-black/50 p-4 overflow-y-auto">
+  <div class="min-h-full flex items-start sm:items-center justify-center py-8">
+    <div id="modalBox" class="fade bg-white rounded-2xl shadow-2xl w-full max-w-3xl relative"></div>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div id="toast" class="hidden-x fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] bg-emerald-700 text-white px-5 py-3 rounded-xl shadow-lg text-sm"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="data/courses.js"></script>
+<script src="app.js"></script>
+<script>
+(function () {
+  var list = typeof COURSES !== 'undefined' ? COURSES : [];
+  var total = list.reduce(function (s, c) { return s + (Number(c.students) || 0); }, 0);
+  var avg = list.length ? list.reduce(function (s, c) { return s + (Number(c.rating) || 0); }, 0) / list.length : 0;
+  var su = document.getElementById('statStudents');
+  var sr = document.getElementById('statRating');
+  if (su) su.textContent = total.toLocaleString('en-US');
+  if (sr) sr.textContent = avg.toFixed(1);
+})();
+</script>
+</body>
+</html>

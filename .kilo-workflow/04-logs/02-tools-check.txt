@@ -1,0 +1,7 @@
+﻿docker : NOT FOUND
+node : AVAILABLE
+npm : AVAILABLE
+npm.cmd : AVAILABLE
+git : AVAILABLE
+python : AVAILABLE
+pnpm : NOT FOUND

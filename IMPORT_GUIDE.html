@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คู่มือนำเข้าคอร์ส — คอร์สออนไลน์</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>body{font-family:'Sarabun','Tahoma',sans-serif;background:#f6fdf9;color:#14532d}
+pre{background:#0f172a;color:#e2e8f0;padding:1rem;border-radius:.75rem;overflow-x:auto;font-size:.82rem;line-height:1.6}
+table{border-collapse:collapse;width:100%}th,td{border:1px solid #d1fae5;padding:.5rem .75rem;text-align:left;font-size:.85rem}
+th{background:#ecfdf5;font-weight:700}</style>
+</head>
+<body>
+<div class="max-w-4xl mx-auto px-4 py-10">
+  <a href="index.html" class="text-emerald-600 hover:underline text-sm">← กลับหน้าเว็บ</a>
+  <h1 class="text-3xl font-extrabold text-emerald-800 mt-3 mb-2">📘 คู่มือการนำเข้าคอร์ส</h1>
+  <p class="text-emerald-700 mb-8">วิธีเพิ่มคอร์สใหม่ และรูปแบบไฟล์ที่รองรับ — ทุกอย่างอยู่ในไฟล์เดียว <code class="bg-emerald-100 px-1.5 py-0.5 rounded">data/courses.js</code></p>
+
+  <h2 class="text-xl font-bold text-emerald-800 mt-8 mb-3">1. วิธีที่เร็วที่สุด — คัดลอกตัวอย่าง</h2>
+  <p class="mb-3">เปิด <code>data/courses.js</code> แล้วคัดลอก object ของคอร์สที่ต้องการ แล้ววางต่อกันใน array <code>COURSES</code> อย่าลืมใส่จุลภาค <code>,</code> หลัง object ก่อนหน้า</p>
+<pre>[
+  {
+    id: 'c13', slug: 'my-new-course', title: 'ชื่อคอร์สของฉัน',
+    desc: 'คำอธิบายสั้น ๆ',
+    category: 'เขียนโปรแกรม', level: 'ง่าย', tier: 1, credits: 1, price: 490,
+    icon: '🚀', cover: 'from-emerald-100 to-green-100', rating: 5.0, students: 0,
+    lessons: 3, hours: 3, certificate: true, lifetime: true,
+    instructor: INSTRUCTORS.somchai,
+    topics: ['หัวข้อที่ 1', 'หัวข้อที่ 2'],
+    syllabus: [
+      { n: 1, title: 'บทที่ 1', duration: '30 นาที' },
+      { n: 2, title: 'บทที่ 2', duration: '45 นาที' },
+      { n: 3, title: 'บทที่ 3', duration: '60 นาที' },
+    ],
+    files: [
+      { name: 'slide.pdf', size: '1.2 MB', type: 'PDF' },
+    ],
+  },
+]</pre>
+  <p class="text-sm text-emerald-600">บันทึกไฟล์แล้วรีเฟรชหน้าเว็บ — การ์ดใหม่จะขึ้นทันที</p>
+
+  <h2 class="text-xl font-bold text-emerald-800 mt-10 mb-3">2. คำอธิบายทุกฟิลด์</h2>
+  <table>
+    <tr><th>ฟิลด์</th><th>ชนิด</th><th>คำอธิบาย</th><th>บังคับ</th></tr>
+    <tr><td><code>id</code></td><td>string</td><td>รหัสเฉพาะ ห้ามซ้ำ ใช้เป็น id ในระบบ</td><td>✅</td></tr>
+    <tr><td><code>slug</code></td><td>string</td><td>URL สั้นของคอร์ส ใช้ตัวอักษรอังกฤษและ - เท่านั้น</td><td>✅</td></tr>
+    <tr><td><code>title</code></td><td>string</td><td>ชื่อคอร์สที่แสดงบนการ์ด</td><td>✅</td></tr>
+    <tr><td><code>desc</code></td><td>string</td><td>คำอธิบาย 1-2 บรรทัด</td><td>✅</td></tr>
+    <tr><td><code>category</code></td><td>string</td><td>หมวดหมู่ ต้องมีใน <code>CATEGORIES</code></td><td>✅</td></tr>
+    <tr><td><code>level</code></td><td>string</td><td><code>ง่าย</code> / <code>ปานกลาง</code> / <code>ยาก</code></td><td>✅</td></tr>
+    <tr><td><code>tier</code></td><td>1|2|3</td><td>ระดับสิทธิ์สมาชิกที่เข้าถึงได้ — Basic เข้า Tier 1, Pro ถึง 2, Premium ถึง 3</td><td>✅</td></tr>
+    <tr><td><code>credits</code></td><td>number</td><td>จำนวนเครดิตที่ใช้แลกคอร์สนี้</td><td>✅</td></tr>
+    <tr><td><code>price</code></td><td>number</td><td>ราคาซื้อเดี่ยว (บาท)</td><td>✅</td></tr>
+    <tr><td><code>icon</code></td><td>emoji</td><td>ไอคอนแสดงบนการ์ด</td><td>✅</td></tr>
+    <tr><td><code>cover</code></td><td>class</td><td>Tailwind gradient เช่น <code>from-emerald-100 to-green-100</code></td><td>✅</td></tr>
+    <tr><td><code>rating</code></td><td>0–5</td><td>คะแนนเฉลี่ย</td><td>✅</td></tr>
+    <tr><td><code>students</code></td><td>number</td><td>จำนวนผู้เรียน (ใช้แสดงผล)</td><td>✅</td></tr>
+    <tr><td><code>lessons</code></td><td>number</td><td>จำนวนบทเรียนทั้งหมด — <strong>ไม่จำเป็นต้องเท่ากับ</strong> <code>syllabus.length</code> (syllabus คือเฉพาะบทหลัก ดูตัวอย่าง: <code>c01</code> มี <code>lessons: 18</code> แต่ syllabus 9 บท)</td><td>✅</td></tr>
+    <tr><td><code>hours</code></td><td>number</td><td>ชั่วโมงเรียนรวม</td><td>✅</td></tr>
+    <tr><td><code>certificate</code></td><td>true/false</td><td>มีใบประกาศนียบัตร</td><td>✅</td></tr>
+    <tr><td><code>lifetime</code></td><td>true/false</td><td>เข้าเรียนได้ตลอดชีพ</td><td>✅</td></tr>
+    <tr><td><code>instructor</code></td><td>object</td><td>ผู้สอน: <code>{ name, title, experience, students, avatar }</code></td><td>✅</td></tr>
+    <tr><td><code>topics</code></td><td>string[]</td><td>รายการสิ่งที่จะได้เรียน</td><td>✅</td></tr>
+    <tr><td><code>syllabus</code></td><td>object[]</td><td>หลักสูตร: <code>{ n, title, duration }</code></td><td>✅</td></tr>
+    <tr><td><code>files</code></td><td>object[]</td><td>ไฟล์ประกอบ: <code>{ name, size, type }</code></td><td>❌</td></tr>
+  </table>
+
+  <h2 class="text-xl font-bold text-emerald-800 mt-10 mb-3">3. รูปแบบไฟล์ที่รองรับ</h2>
+  <table>
+    <tr><th>ไฟล์ประกอบ</th><th>type</th><th>ใช้ทำอะไร</th></tr>
+    <tr><td>PDF</td><td>PDF</td><td>สไลด์ บทสรุป cheat sheet</td></tr>
+    <tr><td>ZIP</td><td>ZIP</td><td>ไฟล์ตัวอย่าง / starter code</td></tr>
+    <tr><td>XLSX</td><td>XLSX</td><td>เทมเพลต Excel</td></tr>
+    <tr><td>CSV</td><td>CSV</td><td>ชุดข้อมูลตัวอย่าง</td></tr>
+    <tr><td>FIG</td><td>FIG</td><td>ไฟล์ Figma</td></tr>
+    <tr><td>DOCX</td><td>DOCX</td><td>เอกสาร Word</td></tr>
+    <tr><td>SQL / YML</td><td>SQL / YML</td><td>ไฟล์โค้ด / config</td></tr>
+    <tr><td>SQLite</td><td>DB</td><td>ฐานข้อมูลตัวอย่างสำหรับฝึกทำ (ใช้ใน <code>c10</code>)</td></tr>
+  </table>
+  <p class="text-sm text-emerald-600 mt-2">วิดีโอ: เก็บที่ Bunny Stream / Cloudflare Stream แล้วเก็บแค่ video id — ดูรายละเอียดการตัดสินใจด้านวิดีโอที่ <code>.kilo-workflow/02-decisions/02-final-decisions.md</code> (ยังไม่ตัดสินใจขัดเจน)</p>
+
+  <h2 class="text-xl font-bold text-emerald-800 mt-10 mb-3">4. เพิ่มหมวดหมู่ใหม่</h2>
+  <p class="mb-2">แก้ array <code>CATEGORIES</code> ที่บนสุดไฟล์:</p>
+<pre>const CATEGORIES = ['ทั้งหมด', 'เขียนโปรแกรม', 'Web', 'AI &amp; Data', 'ดีไซน์', 'ธุรกิจ', 'มาร์เก็ติ้ง'];</pre>
+
+  <h2 class="text-xl font-bold text-emerald-800 mt-10 mb-3">5. เพิ่มผู้สอนใหม่</h2>
+<pre>const INSTRUCTORS = {
+  ...
+  newteacher: { name: 'อาจารย์สมชาย', title: 'Senior Engineer', experience: '8 ปี', students: 12000, avatar: '👨‍🏫' },
+};</pre>
+<p class="text-sm text-emerald-600">แล้วใช้ <code>instructor: INSTRUCTORS.newteacher</code> ในคอร์ส</p>
+
+  <h2 class="text-xl font-bold text-emerald-800 mt-10 mb-3">6. เปลี่ยนราคาแพ็กเกจ</h2>
+<pre>const PLANS = [
+  { code: 'basic',   name: 'Basic',   price: 990,  quota: 3,  maxTier: 1, feats: [...] },
+  { code: 'pro',     name: 'Pro',     price: 2490, quota: 10, maxTier: 2, feats: [...] },
+  { code: 'premium', name: 'Premium', price: 4990, quota: -1, maxTier: 3, feats: [...] },
+];</pre>
+<p class="text-sm text-emerald-600"><code>quota: -1</code> = ไม่จำกัด · <code>maxTier</code> = ระดับคอร์สสูงสุดที่เข้าถึง</p>
+
+  <h2 class="text-xl font-bold text-emerald-800 mt-10 mb-3">7. เปลี่ยนบัญชีรับเงิน</h2>
+<pre>const BANK = {
+  name: 'ชื่อบริษัท',
+  account: '123-4-56789-012',
+  promptpay: '0123456789',
+};</pre>
+<div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-3 text-amber-800 text-sm">
+  ⚠️ <strong>ก่อนใช้งานจริง:</strong> ระบบสลิปและ QR ในเว็บนี้เป็น <strong>ต้นแบบจำลอง</strong> ไม่ได้ต่อธนาคารจริง
+  ต้องเชื่อม SlipOK / EasySlip และเก็บสลิปใน private bucket ก่อนเปิดขายจริง
+  ดูข้อกำหนดด้านความปลอดภัยที่ <code>.kilo-workflow/02-decisions/02-final-decisions.md</code>
+</div>
+
+  <h2 class="text-xl font-bold text-emerald-800 mt-10 mb-3">8. ขั้นตอนนำเข้าแบบเต็ม (กำลังจะทำ)</h2>
+  <ol class="list-decimal list-inside space-y-2 text-emerald-800">
+    <li>เขียนสคริปต์และอัดวิดีโอบทเรียน</li>
+    <li>ตัดวิดีโอเป็น HLS แล้วอัปโหลดขึ้น Bunny Stream (เก็บแค่ video id)</li>
+    <li>เพิ่มรายการคอร์สใน <code>data/courses.js</code></li>
+    <li>ใส่ไฟล์ประกอบลง <code>public/files/</code> (โฟลเดอร์ยังไม่ได้สร้าง)</li>
+    <li>ทดสอบการสั่งซื้อและการเข้าเรียน</li>
+  </ol>
+  <p class="text-sm text-emerald-600 mt-2">หมายเหตุ: เวอร์ชันนี้<strong>ไม่มีฟิลด์ <code>status</code></strong>
+  คอร์สทุกตัวที่ใส่ใน <code>data/courses.js</code> จะแสดงบนเว็บทันทีโดยอัตโนมัติ</p>
+
+  <div class="mt-12 pt-6 border-t border-emerald-200 text-center">
+    <a href="index.html" class="inline-block px-5 py-2.5 rounded-lg bg-emerald-500 text-white text-sm font-semibold">← กลับหน้าเว็บ</a>
+  </div>
+</div>
+</body>
+</html>

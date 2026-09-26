@@ -1,0 +1,15 @@
+﻿Kilo Analysis Review
+====================
+Timestamp: 09/26/2026 18:38:18
+
+Stack ที่แนะนำ (ดูรายละเอียดที่ 02-decisions\02-final-decisions.md):
+  1. Hosting  : Cloudflare Pages + Workers
+  2. Database : Supabase (Postgres + Auth + RLS)
+  3. Frontend : Next.js 15 App Router + TypeScript + Tailwind 3
+  4. Payment  : PromptPay QR + SlipOK
+
+ข้อกำหนดที่ต้องทำตาม:
+  - package.json ต้องไม่มี ""type"": ""module"" เพราะ data/courses.js เป็น CommonJS
+  - tailwind.config.ts ต้อง scan ./data/** เพราะ gradient class เก็บเป็น string
+  - ต้องมี postcss.config.mjs มิฉะนั้น Tailwind ไม่ compile
+  - ห้ามขายจริงจนกว่าจะต่อ SlipOK + เก็บสลิปใน private bucket

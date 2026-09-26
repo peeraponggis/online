@@ -1,0 +1,28 @@
+* text=auto eol=lf
+
+*.js   text eol=lf
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.mjs  text eol=lf
+*.cjs  text eol=lf
+*.json text eol=lf
+*.css  text eol=lf
+*.html text eol=lf
+*.md   text eol=lf
+*.txt  text eol=lf
+
+# PowerShell ต้องเป็น CRLF + BOM เพื่ออ่านภาษาไทยได้ถูกต้องบน Windows
+*.ps1 text eol=crlf
+
+# ข้อมูลคอร์สเก็บเป็น UTF-8 ล้วน ไม่มี BOM
+data/courses.js text eol=lf working-tree-encoding=UTF-8
+
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.woff binary
+*.woff2 binary
+*.pdf  binary
+*.zip  binary
