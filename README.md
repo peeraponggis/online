@@ -63,6 +63,7 @@ powershell.exe -ExecutionPolicy Bypass -File .kilo-workflow\05-scripts\run-all.p
 | คำสั่ง | ผลที่ถูกต้อง |
 |---|---|
 | `node test.js` | `ผ่าน 96  \|  ไม่ผ่าน 0` และ exit code 0 |
+| `node test-ui.mjs` | `ผ่าน 115 \| ไม่ผ่าน 0` (ขับ Microsoft Edge จริง) |
 | `node --check server.js` | ไม่มี output |
 | `npm.cmd run typecheck` | exit 0 |
 | `npm.cmd run lint` | ไม่มี warning/error |
@@ -86,6 +87,20 @@ powershell.exe -ExecutionPolicy Bypass -File .kilo-workflow\05-scripts\run-all.p
 | 8 REGRESSION | ไม่มีอักษรจีน/ญี่ปุ่น/เกาหลีปน, ลิงก์ `IMPORT_GUIDE.html`, ไม่ hardcode ตัวเลข, ลำดับ script, `layout.tsx` import `globals.css` + `{children}`, `CourseGrid` ไม่ hardcode คอร์ส, `postcss.config.mjs` มี, `.gitignore` มี, JSON ไม่มี BOM, tailwind v3 + `content` ครอบ `data/`, **gradient 22/22 class อยู่ใน CSS ที่ build แล้ว** |
 | 9 HTTP | spawn `server.js` จริงแล้วยิงจริง: 200/200/200/200, 404, 400 (`/%` และ `%00`), 405 (POST), 403 (traversal), 200 (HEAD), `nosniff`, และ server ยังไม่ crash |
 
+**UI จริง — `test-ui.mjs` (115 assertions)**
+ใช้ `playwright-core` ขับ **Microsoft Edge** ที่ติดตั้งอยู่ในเครื่องอยู่แล้ว
+(ไม่ดาวน์โหลดเบราว์เซอร์เพิ่ม) ต้องรัน `npm.cmd run build` ก่อน เพราะสคริปต์ต้องการ production build
+
+| กลุ่ม | ครอบคลุม |
+|---|---|
+| responsive | 5 route × 3 ขนาดจอ (375 / 768 / 1440) — ไม่มี horizontal overflow, ไม่มี console error, ไม่มี uncaught exception |
+| hamburger | มือถือแสดง / เดสก์ท็อปซ่อน · `aria-expanded` สลับถูก · คลิกลิงก์แล้วนำทางและปิดเมนู |
+| การโต้ตอบ | search / filter หมวด / filter ระดับ / sort · empty state · ล้างตัวกรอง |
+| contrast | ทุกหน้าไม่มีข้อความที่มองไม่เห็น (อ่าน gradient จริงจาก `background-image`) |
+| เวอร์ชัน HTML | การ์ด 12 ใบ · สถิติ 13,801 / 4.8 · คู่มือเปิดได้ |
+
+เก็บภาพหน้าจอไว้ที่ `%TEMP%\courseweb-ui` (19+ ภาพ)
+
 ---
 
 ## โครงสร้างโปรเจกต์
@@ -95,7 +110,9 @@ C:\LocalAI\courseweb\
 ├── index.html              ← เวอร์ชัน HTML หลัก
 ├── app.js                  ← logic ทั้งหมดของเวอร์ชัน HTML
 ├── server.js               ← static server (GET/HEAD เท่านั้น)
-├── test.js                 ← unit test 59 assertions
+├── test.js                 ← unit test 96 assertions
+├── test-ui.mjs             ← browser test 115 assertions (Edge จริง)
+├── icon.svg                ← favicon
 ├── IMPORT_GUIDE.html       ← คู่มือฟิลด์สำหรับนำเข้าคอร์ส
 │
 ├── data\
@@ -103,9 +120,10 @@ C:\LocalAI\courseweb\
 │   └── courses.d.ts        ← type declaration ให้ TS อ่าน .js ได้
 │
 ├── app\                    ← เวอร์ชัน Next.js (App Router)
-│   ├── layout.tsx          ← root layout + ฟอนต์ + globals.css
+│   ├── layout.tsx          ← root layout + next/font + globals.css
 │   ├── page.tsx            ← หน้าแรก
 │   ├── globals.css
+│   ├── icon.svg            ← favicon (Next inject ให้เอง)
 │   ├── lib\
 │   │   ├── types.ts        ← interfaces
 │   │   └── data.ts         ← สะพานอ่าน data/courses.js

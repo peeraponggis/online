@@ -29,6 +29,7 @@
 | 5 | Next.js build | `npm.cmd run build` | **ผ่าน** · 19 หน้า static · exit 0 |
 | 6 | PowerShell pipeline | `run-all.ps1` | **ผ่าน** · ทั้ง 3 stage · exit 0 ทุกคำสั่ง |
 | 7 | Next.js dev mode | `next dev` | **ผ่าน** · 6 route · HMR ทำงาน · log ไม่มี warning |
+| 8 | **UI จริงในเบราว์เซอร์** | `node test-ui.mjs` (Edge) | **ผ่าน 115 / ไม่ผ่าน 0** |
 | 7 | เสิร์ฟหน้าแรก (HTML) | `GET /` | 200 |
 | 8 | เสิร์ฟไฟล์ JS | `GET /app.js` | 200 |
 | 9 | ไฟล์ไม่มีจริง | `GET /nope.txt` | 404 |
@@ -41,6 +42,39 @@
 | 16 | ไม่มีข้อความเสียหาย | grep `[\x{3000}-\x{9FFF}]` ทั้งโปรเจกต์ | **ไม่พบ** |
 | 17 | ไม่มี BOM ใน JSON | `node test.js` | `package.json` + `tsconfig.json` parse ได้ |
 | 18 | **Tailwind สร้าง gradient ครบ** | ตรวจ CSS ที่ build แล้ว | **22/22 class** จาก `data/courses.js` |
+
+### ✅ UI จริงในเบราว์เซอร์ — `node test-ui.mjs` (Microsoft Edge จริง)
+
+ใช้ `playwright-core` ขับ Edge ที่มีอยู่ในเครื่อง (ไม่ดาวน์โหลดเบราว์เซอร์เพิ่ม)
+**ผ่าน 115 / ไม่ผ่าน 0** — เก็บภาพหน้าจอไว้ที่ `%TEMP%\courseweb-ui`
+
+| กลุ่ม | ผล |
+|---|---|
+| 5 route × 3 ขนาดจอ (375 / 768 / 1440) | ตอบ 200 · ไม่มี horizontal overflow · มีข้อความไทย render · ไม่มี console error · ไม่มี uncaught exception |
+| hamburger (375px) | ปุ่มแสดง / เมนูหลักซ่อน / `aria-expanded` false→true / ลิงก์ 3 รายการ / คลิกแล้วนำทางและปิดเมนู |
+| hamburger (768 / 1440) | เมนูหลักแสดง · ปุ่ม hamburger ซ่อน |
+| search / filter / sort | 12 ใบ · "python" → 2 · ไม่พบ → empty state + ปุ่มล้าง · AI & Data → 4 · ยาก → 5 · เรียงราคาสูง→ต่ำถูก |
+| เวอร์ชัน HTML | 200 · การ์ด 12 ใบ · สถิติ 13,801 / 4.8 · ไม่ล้น · คู่มือเปิดได้ |
+| contrast | ทุกหน้าไม่มีข้อความที่มองไม่เห็น · ชื่อแพ็กเกจทั้ง 3 อ่านออก |
+
+### 🐛 บั๊กที่เจอจากการดูด้วยเบราว์เซอร์ — แก้แล้ว
+
+**1. การ์ด Basic และ Premium บน `/plans` มองไม่เห็นทั้งใบ**
+`Plans.tsx` ใช้ `text-white` กับทุกการ์ด แต่การ์ดที่ไม่ใช่ Pro พื้นหลังเป็น `bg-white`
+→ ข้อความสีขาวบนพื้นขาว มองไม่เห็นชื่อแพ็กเกจ ราคา และฟีเจอร์ (เหลือแต่ปุ่ม)
+แก้เป็นเลือกสีตาม `hot` · เพิ่ม gradient-aware contrast check ใน `test-ui.mjs` กันกลับมา
+
+**2. ไม่มี favicon ทั้งสองเวอร์ชัน**
+เบราว์เซอร์ขอ `/favicon.ico` ได้ 404 → console error
+แก้เพิ่ม `app/icon.svg` (Next.js inject ให้เอง) + `icon.svg` และ
+`<link rel="icon">` ใน `index.html` และ `IMPORT_GUIDE.html`
+
+**3. contrast การ์ด Pro ต่ำกว่าเกณฑ์ WCAG AA**
+gradient `emerald-500 → green-600` ทำให้ข้อความสีขาวได้ contrast 2.89:1 (ต้อง ≥3:1)
+เข้มขึ้นเป็น `emerald-600 → green-700` → **4.34:1**
+
+> บั๊กทั้ง 3 ข้อนี้ **ตรวจไม่พบ** จาก raw HTML, curl, typecheck, lint หรือ unit test
+> ต้องเปิดเบราว์เซอร์แล้วคำนวณ contrast จากสีที่ render จริงเท่านั้น
 
 ### ✅ โหมด dev (`next dev`) — ทดสอบแล้ว
 
@@ -87,8 +121,9 @@
 
 | # | รายการ | เหตุผล |
 |---|---|---|
-| 1 | UI จริงในเบราว์เซอร์ | ยืนยันได้แค่จาก raw HTML — ยังไม่ได้เปิดด้วยตา |
-| 2 | Responsive / mobile menu | ต้องทดสอบด้วย browser จริง (ยืนยันแล้วว่ามี hamburger + `aria-expanded` ในโค้ด แต่ยังไม่ได้เห็นผลจริง) |
+| 1 | เบราว์เซอร์อื่น (Chrome, Firefox, Safari) | ทดสอบด้วย Microsoft Edge เท่านั้น |
+| 2 | screen reader / accessibility audit เต็มรูปแบบ | ตรวจแค่ contrast และ aria attribute ที่ระบุไว้ |
+| 3 | เครื่องจริง (iOS Safari, Android Chrome) | ทดสอบด้วย viewport จำลองใน Edge เท่านั้น |
 
 ---
 

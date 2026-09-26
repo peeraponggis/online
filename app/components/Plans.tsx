@@ -16,7 +16,7 @@ export default function Plans() {
                 key={p.code}
                 className={
                   hot
-                    ? 'relative rounded-2xl bg-gradient-to-b from-emerald-500 to-green-600 p-7 text-white shadow-xl'
+                    ? 'relative rounded-2xl bg-gradient-to-b from-emerald-600 to-green-700 p-7 text-white shadow-xl'
                     : 'rounded-2xl border-2 border-emerald-100 bg-white p-7 shadow-sm'
                 }
               >
@@ -26,13 +26,17 @@ export default function Plans() {
                   </span>
                 )}
 
-                <h3 className="text-xl font-bold text-white">{p.name}</h3>
-                <div className="my-2 text-3xl font-extrabold text-white">
+                <h3 className={`text-xl font-bold ${hot ? 'text-white' : 'text-emerald-800'}`}>
+                  {p.name}
+                </h3>
+                <div className={`my-2 text-3xl font-extrabold ${hot ? 'text-white' : 'text-emerald-600'}`}>
                   {formatBaht(p.price)}
-                  <span className="text-sm font-normal text-emerald-100">/ปี</span>
+                  <span className={`text-sm font-normal ${hot ? 'text-emerald-100' : 'text-emerald-600'}`}>
+                    /ปี
+                  </span>
                 </div>
 
-                <ul className="mb-5 space-y-1.5 text-sm text-white">
+                <ul className={`mb-5 space-y-1.5 text-sm ${hot ? 'text-white' : 'text-emerald-700'}`}>
                   {p.feats.map(f => (
                     <li key={f}>
                       <span className="mr-2">✓</span>
