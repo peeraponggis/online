@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import CourseCard from './CourseCard'
-import { COURSES, COURSE_CATEGORIES } from '../lib/data'
+import { formatBaht } from '../lib/format'
 import { ALL_CATEGORIES, LEVEL_OPTIONS } from '../lib/types'
 import type { Course, Level } from '../lib/types'
 
@@ -21,12 +21,17 @@ const COMPARATORS: Record<SortKey, (a: Course, b: Course) => number> = {
   low: (a, b) => a.price - b.price,
   high: (a, b) => b.price - a.price,
   rating: (a, b) => b.rating - a.rating,
-  new: (a, b) => a.id.localeCompare(b.id),
+  new: (a, b) => a.slug.localeCompare(b.slug),
 }
 
 const MAX_PRICE = 2000
 
-export default function CourseGrid() {
+interface Props {
+  courses: Course[]
+  categories: string[]
+}
+
+export default function CourseGrid({ courses, categories }: Props) {
   const [q, setQ] = useState('')
   const [cat, setCat] = useState<string>(ALL_CATEGORIES)
   const [lvl, setLvl] = useState<string>(ALL_CATEGORIES)
@@ -35,7 +40,7 @@ export default function CourseGrid() {
 
   const list = useMemo(() => {
     const needle = q.trim().toLowerCase()
-    const filtered = COURSES.filter(c => {
+    const filtered = courses.filter(c => {
       if (needle && !`${c.title} ${c.desc}`.toLowerCase().includes(needle)) return false
       if (cat !== ALL_CATEGORIES && c.category !== cat) return false
       if (lvl !== ALL_CATEGORIES && c.level !== (lvl as Level)) return false
@@ -43,7 +48,7 @@ export default function CourseGrid() {
       return true
     })
     return [...filtered].sort(COMPARATORS[sort])
-  }, [q, cat, lvl, maxPrice, sort])
+  }, [courses, q, cat, lvl, maxPrice, sort])
 
   const reset = () => {
     setQ('')
@@ -80,7 +85,7 @@ export default function CourseGrid() {
               className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2 text-sm"
             >
               <option value={ALL_CATEGORIES}>{ALL_CATEGORIES}</option>
-              {COURSE_CATEGORIES.map(c => (
+              {categories.map(c => (
                 <option key={c} value={c}>
                   {c}
                 </option>
@@ -124,7 +129,7 @@ export default function CourseGrid() {
 
         <div className="mt-4 flex items-center justify-between border-t border-emerald-100 pt-3">
           <span className="text-sm text-emerald-700">
-            พบ {list.length} คอร์ส จากทั้งหมด {COURSES.length} คอร์ส
+            พบ {list.length} คอร์ส จากทั้งหมด {courses.length} คอร์ส
           </span>
           <select
             value={sort}

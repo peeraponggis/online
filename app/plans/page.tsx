@@ -2,14 +2,19 @@ import Link from 'next/link'
 import Plans from '../components/Plans'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
-import { PLANS, formatBaht } from '../lib/data'
+import { getPlans } from '../lib/queries'
+import { formatBaht } from '../lib/format'
+
+export const revalidate = 300
 
 export const metadata = {
   title: 'แพ็กเกจสมาชิก — คอร์สออนไลน์',
   description: 'แพ็กเกจสมาชิก 3 ระดับ แลกเครดิตเข้าคอร์สได้ทันที',
 }
 
-export default function PlansPage() {
+export default async function PlansPage() {
+  const plans = await getPlans()
+
   return (
     <>
       <Header />
@@ -24,19 +29,15 @@ export default function PlansPage() {
             <span className="text-emerald-800">แพ็กเกจ</span>
           </nav>
           <h1 className="mb-3 text-center text-3xl font-bold text-emerald-800">แพ็กเกจสมาชิก</h1>
-          <p className="mb-10 text-center text-emerald-600">
-            เลือกแบบที่เหมาะกับคุณ — แลกเครดิตเข้าคอร์สได้ทันที
-          </p>
+          <p className="mb-10 text-center text-emerald-600">เลือกแบบที่เหมาะกับคุณ — แลกเครดิตเข้าคอร์สได้ทันที</p>
         </div>
       </section>
 
-      <Plans />
+      <Plans plans={plans} />
 
       <section className="bg-white py-14">
         <div className="mx-auto max-w-4xl px-4">
-          <h2 className="mb-4 text-center text-2xl font-bold text-emerald-800">
-            เปรียบเทียบสิทธิ์ตามระดับ
-          </h2>
+          <h2 className="mb-4 text-center text-2xl font-bold text-emerald-800">เปรียบเทียบสิทธิ์ตามระดับ</h2>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[520px] text-sm">
               <thead>
@@ -48,7 +49,7 @@ export default function PlansPage() {
                 </tr>
               </thead>
               <tbody>
-                {PLANS.map(p => (
+                {plans.map(p => (
                   <tr key={p.code} className="border-b border-emerald-50">
                     <td className="py-3 pr-4 font-medium text-emerald-900">{p.name}</td>
                     <td className="py-3 pr-4 text-emerald-700">{formatBaht(p.price)} ฿</td>

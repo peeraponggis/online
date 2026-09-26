@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Course } from '../lib/types'
-import { formatBaht } from '../lib/data'
+import { formatBaht } from '../lib/format'
 
 export default function CourseCard({ course }: { course: Course }) {
   return (

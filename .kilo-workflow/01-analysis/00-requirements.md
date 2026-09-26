@@ -86,10 +86,16 @@
 
 | # | เกณฑ์ | คำสั่งตรวจ |
 |---|---|---|
-| DoD-1 | Logic ถูกต้อง | `node test.js` → exit 0 (59 assertions) |
+| DoD-1 | Logic ถูกต้อง | `node test.js` → exit 0 (162 assertions) |
 | DoD-2 | Syntax ถูกต้อง | `node --check server.js` → ไม่มี output |
 | DoD-3 | เว็บ HTML ใช้ได้ | `node server.js 8080` แล้วเปิด http://localhost:8080 |
-| DoD-4 | เว็บ Next.js build ได้ | `npm.cmd run build` → exit 0 |
+| DoD-4 | เว็บ Next.js build ได้ | `npm.cmd run build` → exit 0 (22 หน้า) |
 | DoD-5 | Route ครบ | `/`, `/courses`, `/courses/[slug]`, `/plans`, `/about` ตอบ 200 |
 | DoD-6 | ไม่มีข้อความเสียหาย | grep อักษรจีน/ญี่ปุ่นใน `app/` → ไม่พบ |
-| DoD-7 | ข้อมูลแหล่งเดียว | แก้ `data/courses.js` แล้วทั้งสองเวอร์ชันเปลี่ยนตาม |
+| DoD-7 | ข้อมูลแหล่งเดียว | แก้ฐานข้อมูลแล้วทั้งสองเวอร์ชันเปลี่ยนตาม |
+| DoD-8 | TypeScript สะอาด | `npm.cmd run typecheck` → ไม่มี error |
+| DoD-9 | Lint สะอาด | `npm.cmd run lint` → ไม่มี warning |
+| DoD-10 | UI จริงผ่าน | `node test-ui.mjs` → exit 0 (129 assertions) |
+| DoD-11 | แอดมินล็อกได้ | `/admin` โดยไม่ล็อกอิน → ถูกพาไป `/admin/login` หรือ `/admin/setup` |
+| DoD-12 | เขียนฐานข้อมูลไม่ได้จาก anon | `curl -X POST /rest/v1/courses` ด้วย anon key → 401/403 |
+| DoD-13 | ไม่มีรหัสผ่านใน git | `git log -p \| grep -i password` → ไม่พบ |

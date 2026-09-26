@@ -207,7 +207,9 @@ ok('page.tsx ไม่ hardcode ราคาแพ็กเกจ', !/2,490|4,99
 
 const grid = readRoot(path.join('app', 'components', 'CourseGrid.tsx'));
 ok('CourseGrid.tsx ไม่ hardcode คอร์ส', !/const courses\s*=\s*\[/.test(grid));
-ok('CourseGrid.tsx อ่านจาก lib/data', grid.includes("../lib/data"));
+ok('CourseGrid.tsx ไม่ import แหล่งข้อมูลโดยตรง (รับผ่าน props)',
+  !/from\s+['"].*lib\/(data|queries)['"]/.test(grid));
+ok('CourseGrid.tsx รับ courses เป็น prop', /courses:\s*Course\[\]/.test(grid));
 
 ok('postcss.config.mjs มีอยู่', fs.existsSync(path.join(__dirname, 'postcss.config.mjs')));
 ok('.gitignore มีอยู่', fs.existsSync(path.join(__dirname, '.gitignore')));
@@ -309,7 +311,137 @@ const waitReady = child => new Promise(resolve => {
   child.kill();
   await new Promise(r => child.on('exit', r));
 
-  console.log('\n' + '='.repeat(46));
+  console.log('\n=== TEST 10 : ADMIN (สคีมา ความปลอดภัย cover) ===');
+const ts = require('typescript');
+const NodeModule = require('module');
+const Module = NodeModule.Module || NodeModule;
+
+/** โหลดไฟล์ .ts ในเทสต์ (Node โหลด .ts ได้ แต่ import แบบไม่มีนามสกุลไม่ผ่าน) */
+function loadTs(rel, extra) {
+  const src = readRoot(rel);
+  const js = ts.transpileModule(src, {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+  }).outputText;
+  const m = new Module(rel, null);
+  m.filename = rel;
+  m.paths = NodeModule._nodeModulePaths(process.cwd());
+  const orig = m.require.bind(m);
+  m.require = id => (extra && extra[id] ? extra[id] : orig(id));
+  m._compile(js, rel);
+  return m.exports;
+}
+
+const coversMod = loadTs(path.join('app', 'lib', 'covers.ts'));
+ok('ตัวช่วยโหลด .ts ทำงาน', typeof coversMod.coverClass === 'function');
+
+const schemasMod = loadTs(path.join('app', 'lib', 'schemas.ts'), { './covers': coversMod });
+const importMod = loadTs(path.join('app', 'lib', 'import-parse.ts'));
+const { slugify, courseSchema, planSchema, fieldErrors, bankSettingsSchema } = schemasMod;
+
+ok('slugify ตัดภาษาไทยออก เหลือเฉพาะ a-z 0-9',
+  slugify('คอร์ส Python สำหรับ มือใหม่!') === 'python',
+  slugify('คอร์ส Python สำหรับ มือใหม่!'));
+ok('slugify ตัดขีดซ้ำและขอบ', slugify('--A--B--') === 'a-b', slugify('--A--B--'));
+
+const validCourse = {
+  title: 'คอร์สทดสอบ', slug: 'test-course', desc: 'คำอธิบาย',
+  category_id: '00000000-0000-4000-8000-000000000001', level: 'ง่าย', tier: '1', credits: '1', price: '490',
+  icon: '🚀', cover: 'emerald', rating: '4.5', students: '0', lessons: '1', hours: '1',
+  certificate: true, lifetime: false, instructor_id: '00000000-0000-4000-8000-000000000001', published: false,
+  topics: ['หัวข้อ'], syllabus: [{ n: 1, title: 'บท 1', duration: '30 นาที' }],
+  files: [{ name: 'a.pdf', size: '1 MB', type: 'PDF' }],
+};
+ok('ข้อมูลคอร์สที่ถูกต้องผ่าน', courseSchema.safeParse(validCourse).success);
+ok('level ผิดถูกปฏิเสธ', !courseSchema.safeParse({ ...validCourse, level: 'ง่ายมาก' }).success);
+ok('tier เกิน 3 ถูกปฏิเสธ', !courseSchema.safeParse({ ...validCourse, tier: '5' }).success);
+ok('ราคาติดลบถูกปฏิเสธ', !courseSchema.safeParse({ ...validCourse, price: '-1' }).success);
+ok('slug ผิดรูปแบบถูกปฏิเสธ', !courseSchema.safeParse({ ...validCourse, slug: 'Bad Slug!' }).success);
+ok('cover ที่ไม่รู้จักถูกปฏิเสธ', !courseSchema.safeParse({ ...validCourse, cover: 'from-zzz-100 to-yyy-100' }).success);
+ok('cover ที่มีอยู่จริงผ่าน', courseSchema.safeParse({ ...validCourse, cover: 'fuchsia' }).success);
+ok('หมวดหมู่ไม่ใช่ uuid ถูกปฏิเสธ', !courseSchema.safeParse({ ...validCourse, category_id: 'abc' }).success);
+
+const badErrs = fieldErrors(courseSchema.safeParse({ ...validCourse, title: '' }).error);
+ok('fieldErrors รายงานช่องที่ผิด', !!badErrs.title, JSON.stringify(badErrs));
+
+const plan = (quota, code = 'basic') => ({
+  code, name: 'X', price: '0', quota, max_tier: '1', feats: [], sort_order: '0',
+});
+ok('quota = -1 (ไม่จำกัด) ผ่าน', planSchema.safeParse(plan('-1')).success);
+ok('quota = 0 ถูกปฏิเสธ', !planSchema.safeParse(plan('0')).success);
+ok('รหัสแพ็กเกจสั้นเกิน 2 ตัวอักษรถูกปฏิเสธ', !planSchema.safeParse(plan('-1', 'x')).success);
+ok('รหัสแพ็กเกจที่มีอักษรผิดถูกปฏิเสธ', !planSchema.safeParse(plan('-1', 'Basic Pro')).success);
+ok('เลขพร้อมเพย่ที่มีตัวอักษรถูกปฏิเสธ', !bankSettingsSchema.safeParse({ name: 'x', account: '1', promptpay: 'abc' }).success);
+
+const { COVERS, COVER_TOKENS, coverClass, isCoverToken, tokenFromClass } = coversMod;
+ok('cover token มี 17 ค่า', COVER_TOKENS.length === 17, String(COVER_TOKENS.length));
+ok('cover token ทุกตัวไม่ซ้ำ', new Set(COVER_TOKENS).size === COVER_TOKENS.length);
+ok('coverClass คืนค่าจาก token', coverClass('violet') === COVERS.violet);
+ok('coverClass ของ token ปลอม fallback เป็น emerald', coverClass('nope') === COVERS.emerald);
+ok('isCoverToken ปฏิเสธค่าปลอม', !isCoverToken('nope') && !isCoverToken('__proto__'));
+ok('tokenFromClass แปลงรูปแบบเดิมได้', tokenFromClass('from-emerald-100 to-green-100') === 'emerald');
+ok('tokenFromClass ครอบคลุม cover ทั้ง 12 แบบในไฟล์ข้อมูล',
+  [...new Set(D.map(c => c.cover))].every(cv => isCoverToken(tokenFromClass(cv))));
+
+const { parseCsv, parseImportPayload } = importMod;
+ok('parseCsv อ่านหัวข้อ+บรรทัด', parseCsv('a,b\n1,2').length === 1);
+ok('parseCsv รองรับ quote ที่มี comma', parseCsv('a,b\n"x,y",2')[0].a === 'x,y');
+ok('parseCsv ไม่มีบรรทัดข้อมูล -> array ว่าง', parseCsv('a,b').length === 0);
+ok('parseImportPayload รับ JSON array', parseImportPayload('[{"title":"x"}]').length === 1);
+ok('parseImportPayload แกะ COURSES', parseImportPayload('{"COURSES":[{"title":"x"}]}').length === 1);
+ok('parseImportPayload เดาเป็น CSV เมื่อไม่ใช่ JSON',
+  parseImportPayload('title,slug\nคอร์สการ์ด,my-course').length === 1);
+
+console.log('\n=== TEST 11 : ADMIN (RLS และไฟล์ความปลอดภัย) ===');
+const sql = readRoot(path.join('supabase', 'migrations', '0001_admin_init.sql'));
+const TABLES = ['categories','instructors','plans','courses','course_topics','course_syllabus','course_files','settings','admins','audit_log'];
+for (const t of TABLES) {
+  ok(`RLS เปิดที่ตาราง ${t}`, new RegExp(`alter table\\s+public\\.${t}\\s+enable row level security`).test(sql));
+}
+ok('มีฟังก์ชัน is_admin()', /create or replace function public\.is_admin\(\)/.test(sql));
+ok('ทุกตารางที่แอดมินเขียนได้มี with check is_admin()',
+  (sql.match(/with check \(public\.is_admin\(\)\)/g) || []).length >= 8,
+  String((sql.match(/with check \(public\.is_admin\(\)\)/g) || []).length));
+ok('anon อ่านได้เฉพาะ published', /published or public\.is_admin\(\)/.test(sql));
+ok('ตารางลูกเปิดอ่านเมื่อแม่ถูกเผยแพร่', /c\.published\)/.test(sql));
+ok('ตารางลูกทั้ง 3 ตรวจผ่านแม่คอร์ส', (sql.match(/c\.published\)/g) || []).length === 3);
+ok('ไม่มี dynamic loop ซ่อน policy (กรีดตรวจได้ครบ)', !/foreach t in array/.test(sql));
+ok('revoke execute จาก public บน is_admin', /revoke all on function public\.is_admin\(\) from public/.test(sql));
+ok('ป้องกันการลบหมวดที่ยังมีคอร์ส', /guard_delete_category/.test(sql));
+ok('ป้องกันการลบแพ็กเกจ', /guard_delete_plan/.test(sql));
+ok('audit_log บันทึก before/after', /before\s+jsonb[\s\S]*after\s+jsonb/.test(sql));
+
+const envExample = readRoot('.env.example');
+ok('.env.example มีทั้ง 3 ตัวแปร',
+  /NEXT_PUBLIC_SUPABASE_URL/.test(envExample) &&
+  /NEXT_PUBLIC_SUPABASE_ANON_KEY/.test(envExample) &&
+  /SUPABASE_SERVICE_ROLE_KEY/.test(envExample));
+ok('.env.example ไม่มีค่าใดจริง (เป็นค่าว่างทั้งหมด)',
+  !/SUPABASE_URL=\S/.test(envExample) && !/SERVICE_ROLE_KEY=\S/.test(envExample));
+ok('.env.example เตือนไม่ใส่รหัสผ่าน', /ห้ามใส่รหัสผ่าน/.test(envExample));
+ok('.gitignore ตัด .env.local', /\.env\.local/.test(readRoot('.gitignore')));
+
+const serverSrc = readRoot(path.join('app', 'lib', 'supabase', 'server.ts'));
+ok('service role client อยู่ในไฟล์ server-only',
+  /^import 'server-only'/m.test(serverSrc) && /serviceRoleClient/.test(serverSrc));
+ok('ไม่มี service role ใน client ฝั่ง browser',
+  !/serviceRoleKey/.test(readRoot(path.join('app', 'lib', 'supabase', 'client.ts'))));
+ok('ไม่มี service role ใน env.ts (ต้องอ่านผ่าน readEnv เท่านั้น)',
+  /serviceRoleKey/.test(readRoot(path.join('app', 'lib', 'supabase', 'env.ts'))));
+
+const mw = readRoot('middleware.ts');
+ok('middleware กรอง /admin', /pathname\.startsWith\('\/admin'\)/.test(mw));
+ok('middleware เช็คตาราง admins', /from\('admins'\)/.test(mw));
+ok('middleware ปล่อย /admin/login', /PUBLIC_ADMIN/.test(mw));
+ok('middleware แปะงค์ไป /admin/setup เมื่อยังไม่ตั้งค่า', /'\/admin\/setup'/.test(mw));
+
+const adminSrc = readRoot(path.join('app', 'admin', 'actions.ts'));
+ok('ทุก action ตรวจสิทธิ์ด้วย requireAdmin()',
+  (adminSrc.match(/await requireAdmin\(\)/g) || []).length >= 10);
+ok('ทุก action เขียน audit_log', (adminSrc.match(/logAction\(/g) || []).length >= 10);
+ok('ลบคอร์สต้องพิมพ์คำว่า "ลบ" ยืนยัน', /confirm !== 'ลบ'/.test(adminSrc));
+ok('ไม่มีการเขียนรหัสผ่านลงโค้ด', !/password\s*[:=]\s*['"][^'"]{3,}['"]/.test(adminSrc));
+
+console.log('\n' + '='.repeat(46));
   console.log(`  ผ่าน ${pass}  |  ไม่ผ่าน ${fail}`);
   console.log('='.repeat(46));
   process.exit(fail ? 1 : 0);

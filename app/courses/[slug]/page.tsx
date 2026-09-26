@@ -2,25 +2,29 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
-import { COURSES, PLANS, getCourseBySlug, formatBaht } from '../../lib/data'
+import { getCourses, getCourseBySlug, getPlans } from '../../lib/queries'
+import { formatBaht } from '../../lib/format'
 
-export function generateStaticParams() {
-  return COURSES.map(c => ({ slug: c.slug }))
+export const revalidate = 300
+
+export async function generateStaticParams() {
+  const courses = await getCourses()
+  return courses.map(c => ({ slug: c.slug }))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const course = getCourseBySlug(slug)
+  const course = await getCourseBySlug(slug)
   if (!course) return { title: 'ไม่พบคอร์ส — คอร์สออนไลน์' }
   return { title: `${course.title} — คอร์สออนไลน์`, description: course.desc }
 }
 
 export default async function CourseDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const course = getCourseBySlug(slug)
+  const [course, plans] = await Promise.all([getCourseBySlug(slug), getPlans()])
   if (!course) notFound()
 
-  const plan = PLANS.find(p => course.tier <= p.maxTier)
+  const plan = plans.find(p => course.tier <= p.maxTier)
   const ins = course.instructor
 
   return (
@@ -66,9 +70,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
               </span>
             )}
             {course.lifetime && (
-              <span className="rounded-full bg-sky-100 px-2 py-1 text-xs text-sky-700">
-                ตลอดชีพ
-              </span>
+              <span className="rounded-full bg-sky-100 px-2 py-1 text-xs text-sky-700">ตลอดชีพ</span>
             )}
           </div>
 
@@ -85,9 +87,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
               <div className="text-xs text-emerald-600">ชั่วโมง</div>
             </div>
             <div className="rounded-xl bg-emerald-50 py-3">
-              <div className="text-xl font-bold text-emerald-700">
-                {formatBaht(course.students)}
-              </div>
+              <div className="text-xl font-bold text-emerald-700">{formatBaht(course.students)}</div>
               <div className="text-xs text-emerald-600">ผู้เรียน</div>
             </div>
           </div>
@@ -117,9 +117,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
             ))}
           </ol>
 
-          <h2 className="mb-2 text-lg font-bold text-emerald-800">
-            ไฟล์ประกอบ ({course.files.length})
-          </h2>
+          <h2 className="mb-2 text-lg font-bold text-emerald-800">ไฟล์ประกอบ ({course.files.length})</h2>
           <ul className="mb-8 space-y-1.5">
             {course.files.map(f => (
               <li
@@ -149,9 +147,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
             <div className="mb-4 flex items-end justify-between">
               <div>
                 <div className="text-xs text-emerald-600">ราคาซื้อเดี่ยว</div>
-                <div className="text-3xl font-bold text-emerald-600">
-                  {formatBaht(course.price)}฿
-                </div>
+                <div className="text-3xl font-bold text-emerald-600">{formatBaht(course.price)}฿</div>
               </div>
               <div className="text-sm text-amber-500">
                 ★ {course.rating} ({formatBaht(course.students)} คน)

@@ -1,7 +1,16 @@
 import Link from 'next/link'
-import { PLANS, formatBaht } from '../lib/data'
+import { formatBaht } from '../lib/format'
 
-export default function Plans() {
+export interface PlanItem {
+  code: string
+  name: string
+  price: number
+  quota: number
+  maxTier: number
+  feats: string[]
+}
+
+export default function Plans({ plans }: { plans: PlanItem[] }) {
   return (
     <section id="plans" className="border-y border-emerald-100 bg-emerald-50 py-16">
       <div className="mx-auto max-w-6xl px-4">
@@ -9,7 +18,7 @@ export default function Plans() {
         <p className="mb-10 text-center text-emerald-600">แลกเครดิตเข้าคอร์สได้ทันที</p>
 
         <div className="grid gap-6 md:grid-cols-3">
-          {PLANS.map((p, i) => {
+          {plans.map((p, i) => {
             const hot = i === 1
             return (
               <div
@@ -21,7 +30,7 @@ export default function Plans() {
                 }
               >
                 {hot && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-emerald-800 px-4 py-1 text-xs">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-emerald-900 px-4 py-1 text-xs">
                     คุ้มค่าที่สุด
                   </span>
                 )}
@@ -31,7 +40,9 @@ export default function Plans() {
                 </h3>
                 <div className={`my-2 text-3xl font-extrabold ${hot ? 'text-white' : 'text-emerald-600'}`}>
                   {formatBaht(p.price)}
-                  <span className={`text-sm font-normal ${hot ? 'text-emerald-100' : 'text-emerald-600'}`}>
+                  <span
+                    className={`text-sm font-normal ${hot ? 'text-emerald-100' : 'text-emerald-600'}`}
+                  >
                     /ปี
                   </span>
                 </div>

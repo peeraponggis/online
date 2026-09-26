@@ -1,15 +1,23 @@
 import Link from 'next/link'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
-import { COURSES, INSTRUCTORS, TOTAL_STUDENTS, AVERAGE_RATING, formatBaht } from '../lib/data'
+import { getCourses, getInstructors } from '../lib/queries'
+import { formatBaht } from '../lib/format'
+
+export const revalidate = 300
 
 export const metadata = {
   title: 'เกี่ยวกับเรา — คอร์สออนไลน์',
   description: 'แพลตฟอร์มคอร์สออนไลน์ธีมธรรมชาติ จากผู้สอนมืออาชีพ',
 }
 
-export default function AboutPage() {
-  const instructors = Object.values(INSTRUCTORS)
+export default async function AboutPage() {
+  const [courses, instructorRows] = await Promise.all([getCourses(), getInstructors()])
+  const totalStudents = courses.reduce((s, c) => s + c.students, 0)
+  const avgRating =
+    courses.length > 0
+      ? Math.round((courses.reduce((s, c) => s + c.rating, 0) / courses.length) * 10) / 10
+      : 0
 
   return (
     <>
@@ -33,30 +41,28 @@ export default function AboutPage() {
 
           <div className="mb-12 grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div className="rounded-xl bg-emerald-50 p-4 text-center">
-              <div className="text-2xl font-bold text-emerald-600">{COURSES.length}</div>
+              <div className="text-2xl font-bold text-emerald-600">{courses.length}</div>
               <div className="text-xs text-emerald-700">คอร์ส</div>
             </div>
             <div className="rounded-xl bg-emerald-50 p-4 text-center">
-              <div className="text-2xl font-bold text-emerald-600">{instructors.length}</div>
+              <div className="text-2xl font-bold text-emerald-600">{instructorRows.length}</div>
               <div className="text-xs text-emerald-700">ผู้สอน</div>
             </div>
             <div className="rounded-xl bg-emerald-50 p-4 text-center">
-              <div className="text-2xl font-bold text-emerald-600">
-                {formatBaht(TOTAL_STUDENTS)}
-              </div>
+              <div className="text-2xl font-bold text-emerald-600">{formatBaht(totalStudents)}</div>
               <div className="text-xs text-emerald-700">ผู้เรียนสะสม</div>
             </div>
             <div className="rounded-xl bg-emerald-50 p-4 text-center">
-              <div className="text-2xl font-bold text-emerald-600">{AVERAGE_RATING}</div>
+              <div className="text-2xl font-bold text-emerald-600">{avgRating}</div>
               <div className="text-xs text-emerald-700">คะแนนเฉลี่ย</div>
             </div>
           </div>
 
           <h2 className="mb-4 text-2xl font-bold text-emerald-800">ทีมผู้สอน</h2>
           <ul className="mb-12 space-y-2">
-            {instructors.map(i => (
+            {instructorRows.map(i => (
               <li
-                key={i.name}
+                key={i.id}
                 className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-white p-3"
               >
                 <span className="text-2xl">{i.avatar}</span>

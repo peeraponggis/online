@@ -1,8 +1,9 @@
 # สถานะโปรเจกต์ LMS
 
-> อัปเดตล่าสุด: **2026-09-26 12:40**
+> อัปเดตล่าสุด: **2026-09-26 12:30**
 > โฟลเดอร์: `C:\LocalAI\courseweb`
 > remote: https://github.com/peeraponggis/online (branch `main`)
+> หน้าแอดมิน: http://localhost:3000/admin (ยังต้องตั้งค่า Supabase ก่อน)
 > เวอร์ชัน HTML: http://localhost:8080 (หลังรัน `node server.js 8080`)
 > เวอร์ชัน Next.js: http://localhost:3000 (หลังรัน `npm.cmd run dev`)
 
@@ -11,9 +12,11 @@
 ## กฎเหล็กของโปรเจกต์นี้ (ต้องทำทุกครั้ง)
 
 1. **ทดสอบก่อนสรุปว่าเสร็จเสมอ** — ห้ามสรุปโดยไม่ได้รันจริง
-2. **แก้ข้อมูลคอร์สที่ `data/courses.js` ไฟล์เดียว** — ห้าม hardcode คอร์สในไฟล์อื่น
+2. **ฐานข้อมูล Supabase คือแหล่งข้อมูลเดียว** — แก้ผ่านหน้า `/admin`
+   `data/courses.js` เป็น *snapshot* สำหรับเดโมเวอร์ชัน HTML เท่านั้น ห้ามแก้มือ
 3. **รายงานตามจริง** — ถ้าทำไม่ได้ให้บอกว่าทำไม่ได้ ห้ามกล่าวอ้างว่าสำเร็จ
-4. **Thai encoding** — เขียนไฟล์เป็น UTF-8 เสมอ
+4. **Thai encoding** — เขียนไฟล์เป็น UTF-8 เสมอ · ห้ามมี BOM ใน JSON
+5. **ห้าม commit รหัสผ่านหรือ key** — ใช้ `.env.local` (ถูก gitignore) เท่านั้น
 
 ---
 
@@ -23,14 +26,16 @@
 
 | # | การตรวจ | คำสั่ง | ผล |
 |---|---|---|---|
-| 1 | Logic unit test | `node test.js` | **ผ่าน 96 / ไม่ผ่าน 0** · exit 0 |
+| 1 | Logic unit test | `node test.js` | **ผ่าน 162 / ไม่ผ่าน 0** · exit 0 |
 | 2 | Syntax server | `node --check server.js` | ไม่มี output (ผ่าน) |
 | 3 | TypeScript | `npm.cmd run typecheck` | **ผ่าน** · 0 error |
 | 4 | ESLint | `npm.cmd run lint` | **ผ่าน** · ไม่มี warning |
-| 5 | Next.js build | `npm.cmd run build` | **ผ่าน** · 19 หน้า static · exit 0 |
+| 5 | Next.js build | `npm.cmd run build` | **ผ่าน** · 22 หน้า · exit 0 |
 | 6 | PowerShell pipeline | `run-all.ps1` | **ผ่าน** · ทั้ง 3 stage · exit 0 ทุกคำสั่ง |
 | 7 | Next.js dev mode | `next dev` | **ผ่าน** · 6 route · HMR ทำงาน · log ไม่มี warning |
-| 8 | **UI จริงในเบราว์เซอร์** | `node test-ui.mjs` (Edge) | **ผ่าน 115 / ไม่ผ่าน 0** |
+| 8 | **UI จริงในเบราว์เซอร์** | `node test-ui.mjs` (Edge) | **ผ่าน 129 / ไม่ผ่าน 0** |
+| 9 | เก็บกับความปลอดภัย | TEST 11 ใน test.js | RLS 10 ตาราง · env ว่าง · service role ไม่รั่ว |
+| 10 | **คิวรีฐานข้อมูลจริง** | — | **ยังทำไม่ได้** — ยังไม่มี Supabase project |
 | 7 | เสิร์ฟหน้าแรก (HTML) | `GET /` | 200 |
 | 8 | เสิร์ฟไฟล์ JS | `GET /app.js` | 200 |
 | 9 | ไฟล์ไม่มีจริง | `GET /nope.txt` | 404 |
@@ -44,10 +49,56 @@
 | 17 | ไม่มี BOM ใน JSON | `node test.js` | `package.json` + `tsconfig.json` parse ได้ |
 | 18 | **Tailwind สร้าง gradient ครบ** | ตรวจ CSS ที่ build แล้ว | **22/22 class** จาก `data/courses.js` |
 
+### ✅ หน้าแอดมิน — `/admin` (โค้ดครบ ยังรอ Supabase)
+
+| ส่วน | สถานะ |
+|---|---|
+| Schema + RLS | 10 ตาราง · `is_admin()` · trigger กันลบหมวด/แพ็กเกจที่ยังถูกอ้างอิง · `audit_log` |
+| middleware | กรอง `/admin/*` 2 ชั้น (session + ตาราง `admins`) · ส่ง `/admin/setup` เมื่อยังไม่ตั้งค่า |
+| Route | 12 หน้า: แดชบอร์ด คอร์ส ฟอร์มเพิ่ม/แก้ นำเข้า ผู้สอน แพ็กเกจ หมวดหมู่ ตั้งค่า login setup |
+| CRUD คอร์ส | เพิ่ม แก้ ลบ (ต้องพิมพ์ยืนยัน) เผยแพร่/ถอน ค้นหา กรอง 4 แบบ · dirty tracking |
+| นำเข้า | JSON + CSV · ตรวจก่อนนำเข้า · เลือกทีละรายการ · แยกเพิ่มใหม่/อัปเดต/ผิดพลาด · เทมเพลต |
+| ฟอร์ม | `CoverPicker` (17 token) · `TagInput` · `Repeater` (syllabus ไฟล์) · ปิดสวิตช์ลบ · error ใต้ช่อง |
+| ความปลอดภัย | ทุก action เรียก `requireAdmin()` + เขียน `audit_log` · service role ไม่อยู่ฝั่ง client |
+
+**🛡️ ชั้นการป้องกัน 3 ชั้น**
+
+| ชั้น | กลไก |
+|---|---|
+| 1 | `middleware.ts` ตรวจ session + ตาราง `admins` ก่อนเข้า `/admin/*` |
+| 2 | ทุก Server Action เรียก `requireAdmin()` (ต้องมี session จริงถึงจะถึง) |
+| 3 | RLS `using (is_admin()) with check (is_admin())` ทุกตาราง |
+
+### 🐛 บั๊กที่เจอและแก้ระหว่างทำหน้าแอดมิน
+
+**1. `/admin` วนลูปไม่รู้จบ (`ERR_TOO_MANY_REDIRECTS`)**
+middleware matcher ครอบ `/admin/setup` ด้วย แต่ตัว middleware ก็แปะงค์ไป `/admin/setup`
+→ ต้องยกเว้น `/admin/setup` ออกจาก `PUBLIC_ADMIN` **เจอโดยการเปิดเบราว์เซอร์จริง**
+curl ตอบ 307 ปกติจึงไม่เจอ (curl ไม่ follow redirect)
+
+**2. ร่างแรกใช้ `service_role` ตรวจสัทธิ์ผู้ใช้**
+ทำให้ `auth.uid()` ไม่ทำงาน และข้าม RLS ทั้งหมด → เปลี่ยนเป็น anon key + JWT จาก cookie ผ่าน `@supabase/ssr`
+
+**3. RLS ซ่อนอยู่ใน `do $$ ... foreach`**
+`test.js` ตรวจด้วยการ grep `alter table public.X enable row level security` แต่ 6 ตารางถูกซ่อน
+ใน string ของ `format()` → **กรีดไม่เจอ** → เขียนแยกทุกตาราง เพื่อให้ตรวจสอบได้จริง
+> โค้ดความปลอดภัยที่ตรวจสอบยากคือข้อผิดพลาด
+
+**4. ร่างแรกวาง layout ที่ `app/admin/layout.tsx`**
+จะครอบหน้า login ด้วย และเรียก `requireAdmin()` ใน layout → วนไม่รู้จบ
+แก้เป็นใช้ route group `app/admin/(panel)/` เก็บเฉพาะหน้าที่ต้องล็อกอิน
+
+**5. `cover` เก็บเป็น Tailwind class ทำให้ผู้ดูแลทำการ์ดพังได้**
+Tailwind สแกนตอน build เท่านั้น ถ้าพิมพ์ class ใหม่จะไม่มี CSS
+แก้เป็นเก็บ token 17 สี + `safelist` (รายละเอียดใน `03-admin-panel.md`)
+
+**6. `next dev` เขียนทับ `.next` ทำให้ `next start` พัง**
+ขึ้น `production-start-no-build-id` → `test-ui.mjs` ตรวจ `.next/BUILD_ID` ก่อนรันและบอกชัดแล้ว
+
 ### ✅ UI จริงในเบราว์เซอร์ — `node test-ui.mjs` (Microsoft Edge จริง)
 
 ใช้ `playwright-core` ขับ Edge ที่มีอยู่ในเครื่อง (ไม่ดาวน์โหลดเบราว์เซอร์เพิ่ม)
-**ผ่าน 115 / ไม่ผ่าน 0** — เก็บภาพหน้าจอไว้ที่ `%TEMP%\courseweb-ui`
+**ผ่าน 129 / ไม่ผ่าน 0** — เก็บภาพหน้าจอไว้ที่ `%TEMP%\courseweb-ui`
 
 | กลุ่ม | ผล |
 |---|---|
@@ -55,8 +106,9 @@
 | hamburger (375px) | ปุ่มแสดง / เมนูหลักซ่อน / `aria-expanded` false→true / ลิงก์ 3 รายการ / คลิกแล้วนำทางและปิดเมนู |
 | hamburger (768 / 1440) | เมนูหลักแสดง · ปุ่ม hamburger ซ่อน |
 | search / filter / sort | 12 ใบ · "python" → 2 · ไม่พบ → empty state + ปุ่มล้าง · AI & Data → 4 · ยาก → 5 · เรียงราคาสูง→ต่ำถูก |
+| contrast | ทุกหน้าไม่มีข้อความที่มองไม่เห็น · ชื่อแพ็กเกจทั้ง 3 อ่านออก (7.68 / 4.34 / 7.68) |
+| เส้นทางแอดมิน | 4 route ถูกพาถูกต้อง · `/admin/setup` มี 6 ขั้นตอน ไม่มีช่องรหัสผ่าน · `/admin/login` มีช่องครบและ `type=password` |
 | เวอร์ชัน HTML | 200 · การ์ด 12 ใบ · สถิติ 13,801 / 4.8 · ไม่ล้น · คู่มือเปิดได้ |
-| contrast | ทุกหน้าไม่มีข้อความที่มองไม่เห็น · ชื่อแพ็กเกจทั้ง 3 อ่านออก |
 
 ### 🐛 บั๊กที่เจอจากการดูด้วยเบราว์เซอร์ — แก้แล้ว
 
@@ -118,16 +170,19 @@ gradient `emerald-500 → green-600` ทำให้ข้อความสี�
 > หมายเหตุ: เมื่อดู raw HTML จะเห็น `Tier <!-- -->1` — นี่คือ **ผลปกติของ React SSR**
 > ที่แทรก comment separator ระหว่าง text node ไม่ใช่บั๊ก ในเบราว์เซอร์แสดง "Tier 1" ปกติ
 
-### ⚠️ ยังไม่ได้ตรวจ
+### ⚠️ ยังไม่ได้ตรวจ — เพราะยังไม่มี Supabase project
 
 | # | รายการ | เหตุผล |
 |---|---|---|
-| 1 | เบราว์เซอร์อื่น (Chrome, Firefox, Safari) | ทดสอบด้วย Microsoft Edge เท่านั้น |
-| 2 | screen reader / accessibility audit เต็มรูปแบบ | ตรวจแค่ contrast และ aria attribute ที่ระบุไว้ |
-| 3 | เครื่องจริง (iOS Safari, Android Chrome) | ทดสอบด้วย viewport จำลองใน Edge เท่านั้น |
+| 1 | **เส้นทางเชื่อมต่อฐานข้อมูลจริง** | ต้องมี Supabase project + key ก่อน — ทำแทนไม่ได้ |
+| 2 | **เขียน/ลบ/นำเข้าจริงแล้วเห็นผลบนหน้าเว็บ** | ต้องต่อ DB ก่อน (เทสต์ schema กับ RLS ผ่านแล้ว แต่ยังไม่ได้รันกับ DB จริง) |
+| 3 | ตรวจว่า `anon` key เขียนไม่ได้จริง | ต้องมี DB จริง |
+| 4 | เบราว์เซอร์อื่น (Chrome, Firefox, Safari) | ทดสอบด้วย Microsoft Edge เท่านั้น |
+| 5 | screen reader / accessibility audit เต็มรูปแบบ | ตรวจแค่ contrast และ aria attribute ที่ระบุไว้ |
+| 6 | เครื่องจริง (iOS Safari, Android Chrome) | ทดสอบด้วย viewport จำลองใน Edge เท่านั้น |
 
-**ไม่มีงานค้างที่ผมทำต่อได้** — ทั้งสองข้อที่เคยเหลือ (UI ในเบราว์เซอร์, remote repo)
-ปิดครบแล้วในรอบนี้
+**ไม่มีงานค้างที่ผมทำต่อได้** — รอเฉพาะการตั้งค่า Supabase จากผู้ใช้
+(6 ขั้นตอนอยู่ใน `README.md` หัวข้อ "หน้าแอดมิน" และหน้า `/admin/setup`)
 
 ---
 
@@ -266,19 +321,37 @@ C:\LocalAI\courseweb\
 ├── tailwind.config.ts · tsconfig.json · .gitignore
 │
 ├── data\
-│   ├── courses.js      ← ★ แหล่งข้อมูลเดียว (12 คอร์ส)
-│   └── courses.d.ts    ← ใหม่
+│   ├── courses.js      ← snapshot จาก DB (สำหรับเดโม HTML)
+│   └── courses.d.ts    ← ให้ TS อ่าน .js ได้
+│
+├── supabase\
+│   ├── migrations\      ← 0001 schema+RLS, 0002 settings
+│   └── seed\seed.mjs    ← ย้ายข้อมูลเดิมเข้า DB
+│
+├── scripts\
+│   ├── admin-create.mjs      ← สร้างผู้ดูแล (ซ่อนรหัสผ่าน)
+│   └── export-snapshot.mjs   ← ดึง DB กลับ data/courses.js
+│
+├── middleware.ts       ← กรอง /admin/*
 │
 ├── app\
-│   ├── layout.tsx · page.tsx · globals.css
-│   ├── lib\            types.ts · data.ts        ← ใหม่
-│   ├── components\     Header, Hero, Footer, CourseGrid, CourseCard, Plans(ใหม่)
-│   ├── courses\        page.tsx · [slug]\page.tsx   ← ใหม่
-│   ├── plans\page.tsx                            ← ใหม่
-│   └── about\page.tsx                            ← ใหม่
+│   ├── layout.tsx · page.tsx · globals.css · icon.svg
+│   ├── lib\           types, data, queries, schemas, covers, format,
+│   │                  import-parse, supabase\{env,client,server,admin}
+│   ├── components\    Header, Hero, Footer, CourseGrid, CourseCard, Plans
+│   │   └── admin\     ui, CoverPicker, TagInput, Repeater, SubmitButton
+│   ├── admin\
+│   │   ├── login\ setup\        ← นอก route group
+│   │   ├── actions.ts queries.ts
+│   │   └── (panel)\             ← 12 หน้าที่ต้องล็อกอิน
+│   ├── courses\  plans\  about\
 │
-└── .kilo-workflow\     01-analysis (3) · 02-decisions (2) · 03-implementation (1)
-                        04-logs (4) · 05-scripts (3)
+├── package.json · postcss.config.mjs · next.config.js
+├── tailwind.config.ts · tsconfig.json · .eslintrc.json
+├── .env.example · .gitignore · .gitattributes
+│
+└── .kilo-workflow\     01-analysis (3) · 02-decisions (3) · 03-implementation (1)
+                        04-logs (7) · 05-scripts (3)
 ```
 
 ---

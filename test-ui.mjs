@@ -383,7 +383,54 @@ async function main() {
       await ctx.close()
     }
 
-    // ---- 6. เวอร์ชัน HTML ----
+    // ---- 6. route ของแอดมิน (ยังไม่ได้ตั้งค่า Supabase -> ต้องถูกพาไป /admin/setup) ----
+    section('เส้นทางแอดมิน · ยังไม่ล็อกอิน')
+    {
+      const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
+      const page = await ctx.newPage()
+
+      for (const p of ['/admin', '/admin/courses', '/admin/settings', '/admin/courses/new']) {
+        await page.goto(`http://127.0.0.1:${NEXT_PORT}${p}`, { waitUntil: 'domcontentloaded' })
+        ok(`${p} ไม่ให้เข้าถึงตรง ๆ`, !page.url().endsWith(p), `ไปที่ ${page.url()}`)
+        ok(`${p} ถูกพาไปหน้าปลอดภัย`,
+          page.url().includes('/admin/setup') || page.url().includes('/admin/login'),
+          page.url())
+      }
+
+      // ใช้ context ใหม่เพื่อไม่ให้การเชื่อมต่อค้างจากรอบก่อนรบกวน networkidle
+      const ctx2 = await browser.newContext({ viewport: { width: 1440, height: 900 } })
+      const p2 = await ctx2.newPage()
+
+      const setup = await p2.goto(`http://127.0.0.1:${NEXT_PORT}/admin/setup`, {
+        waitUntil: 'domcontentloaded',
+        timeout: 30000,
+      })
+      ok('/admin/setup เปิดได้', setup.status() === 200, `ได้ ${setup.status()}`)
+      await p2.waitForSelector('ol > li', { timeout: 10000 })
+      ok('/admin/setup อธิบายขั้นตอน 6 ข้อ',
+        (await p2.locator('ol > li').count()) === 6,
+        String(await p2.locator('ol > li').count()))
+      ok('/admin/setup ไม่มีช่องใส่รหัสผ่าน',
+        (await p2.locator('input[type="password"]').count()) === 0)
+
+      const login = await p2.goto(`http://127.0.0.1:${NEXT_PORT}/admin/login`, {
+        waitUntil: 'domcontentloaded',
+        timeout: 30000,
+      })
+      ok('/admin/login เปิดได้', login.status() === 200, `ได้ ${login.status()}`)
+      await p2.waitForSelector('input[name="email"]', { timeout: 10000 })
+      ok('/admin/login มีช่องอีเมลและรหัสผ่าน',
+        (await p2.locator('input[name="email"]').count()) === 1 &&
+          (await p2.locator('input[name="password"]').count()) === 1)
+      ok('ช่องรหัสผ่านเป็น type=password',
+        (await p2.locator('input[name="password"]').getAttribute('type')) === 'password')
+
+      await p2.screenshot({ path: join(SHOTS, 'desktop-admin-login.png') })
+      await ctx2.close()
+      await ctx.close()
+    }
+
+    // ---- 7. เวอร์ชัน HTML ----
     section('เวอร์ชัน HTML (index.html) · server.js')
     {
       const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } })

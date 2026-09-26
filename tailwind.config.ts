@@ -2,6 +2,11 @@ import type { Config } from 'tailwindcss'
 
 const config: Config = {
   content: ['./app/**/*.{ts,tsx}', './data/**/*.{js,ts}'],
+  safelist: [
+    { pattern: /^from-(emerald|lime|teal|cyan|sky|indigo|violet|purple|fuchsia|pink|rose|amber|orange|yellow|slate|stone|zinc)-100$/ },
+    { pattern: /^to-(green|cyan|blue|purple|violet|pink|rose|orange|amber|yellow|neutral|gray)-100$/ },
+    { pattern: /^to-gray-200$/ },
+  ],
   theme: {
     extend: {
       colors: {
@@ -16,6 +21,7 @@ const config: Config = {
           700: '#15803d',
           800: '#166534',
           900: '#14532d',
+          950: '#052e16',
         },
       },
       fontFamily: {
