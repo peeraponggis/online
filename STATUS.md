@@ -28,6 +28,7 @@
 | 4 | ESLint | `npm.cmd run lint` | **ผ่าน** · ไม่มี warning |
 | 5 | Next.js build | `npm.cmd run build` | **ผ่าน** · 19 หน้า static · exit 0 |
 | 6 | PowerShell pipeline | `run-all.ps1` | **ผ่าน** · ทั้ง 3 stage · exit 0 ทุกคำสั่ง |
+| 7 | Next.js dev mode | `next dev` | **ผ่าน** · 6 route · HMR ทำงาน · log ไม่มี warning |
 | 7 | เสิร์ฟหน้าแรก (HTML) | `GET /` | 200 |
 | 8 | เสิร์ฟไฟล์ JS | `GET /app.js` | 200 |
 | 9 | ไฟล์ไม่มีจริง | `GET /nope.txt` | 404 |
@@ -41,8 +42,29 @@
 | 17 | ไม่มี BOM ใน JSON | `node test.js` | `package.json` + `tsconfig.json` parse ได้ |
 | 18 | **Tailwind สร้าง gradient ครบ** | ตรวจ CSS ที่ build แล้ว | **22/22 class** จาก `data/courses.js` |
 
-### ✅ Route ของ Next.js (ทดสอบกับ `next start` จริง)
+### ✅ โหมด dev (`next dev`) — ทดสอบแล้ว
 
+| Route | ครั้งแรก (compile) | ครั้งถัดไป (cache) |
+|---|---|---|
+| `/` | 200 · 4809ms · 625 modules | 200 · 41ms |
+| `/courses` | 200 · 835ms · 618 modules | — |
+| `/about` | 200 · 592ms · 610 modules | 200 · 34ms |
+| `/plans` | 200 · 977ms | — |
+| `/courses/python-beginner` | 200 · 1214ms · 621 modules | 200 · 37ms |
+| `/courses/nope` | 404 (ถูกต้อง) | — |
+
+- **HMR ทำงาน** — แก้ `app/about/page.tsx` แล้วข้อความใหม่ปรากฏใน 80ms
+  โดยไม่ต้อง restart (recompile 309ms) และ revert กลับแล้ว repo สะอาด
+- **เนื้อหาใน dev ถูกต้อง** — ชื่อคอร์ส ชื่อผู้สอน ชื่อไฟล์ประกอบ สถิติ 13,801
+  แบ็กเกจ · ไม่มีอักษร CJK · ไม่มี error overlay
+- **log สะอาด** — ไม่มี warning หรือ error เลยตลอดการทดสอบ
+
+> **ข้อควรรู้:** `next dev` จะ **ออกทันที** ถ้า stdin ถูกปิด
+> ถ้ารันผ่าน tool ที่ปิด stdin (เช่น background process แบบ `start`)
+> ให้เรียกตรง `node node_modules\next\dist\bin\next dev` แทน `npm run dev`
+> `next start` (โหมด production) ไม่มีปัญหานี้
+
+### ✅ Route ของ Next.js (ทดสอบกับ `next start` จริง)
 | Route | ผล |
 |---|---|
 | `/` | 200 |
@@ -66,8 +88,7 @@
 | # | รายการ | เหตุผล |
 |---|---|---|
 | 1 | UI จริงในเบราว์เซอร์ | ยืนยันได้แค่จาก raw HTML — ยังไม่ได้เปิดด้วยตา |
-| 2 | Responsive / mobile menu | ต้องทดสอบด้วย browser จริง |
-| 3 | `npm.cmd run dev` (โหมด dev) | ทดสอบแค่ production build + `next start` |
+| 2 | Responsive / mobile menu | ต้องทดสอบด้วย browser จริง (ยืนยันแล้วว่ามี hamburger + `aria-expanded` ในโค้ด แต่ยังไม่ได้เห็นผลจริง) |
 
 ---
 

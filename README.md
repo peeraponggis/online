@@ -40,6 +40,10 @@ npm.cmd run dev
 
 > **ต้องใช้ `npm.cmd` ไม่ใช่ `npm`** — `npm.ps1` ถูก PowerShell execution policy บล็อก
 > (ถ้าอยากแก้ถาวร: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`)
+>
+> ถ้า `next dev` ออกทันทีโดยไม่มี error แปลว่า stdin ถูกปิด
+> (พบเมื่อรันผ่าน tool ที่จัดการ process แบบ `start`) ให้เรียกตรงแทน:
+> `node node_modules\next\dist\bin\next dev`
 
 ### สคริปต์อัตโนมัติของ workflow
 
@@ -63,6 +67,7 @@ powershell.exe -ExecutionPolicy Bypass -File .kilo-workflow\05-scripts\run-all.p
 | `npm.cmd run typecheck` | exit 0 |
 | `npm.cmd run lint` | ไม่มี warning/error |
 | `npm.cmd run build` | exit 0 · 19 หน้า static |
+| `next dev` + curl 6 route | 200 ทั้ง 5 route · 404 ถูกต้อง · HMR ทำงาน · log ไม่มี warning |
 
 `test.js` รัน logic ทั้งหมดใน Node โดยไม่ต้องเปิด browser — ใช้ `vm` module
 สร้าง DOM จำลอง แล้วโหลด `data/courses.js` + `app.js` เข้าไปใน context เดียว
