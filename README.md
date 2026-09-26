@@ -161,7 +161,7 @@ C:\LocalAI\courseweb\
 
 ## ข้อควรระวัง
 
-- **ยังไม่มี remote** — repo อยู่ในเครื่องอย่างเดียว ถ้าเครื่องเสียงานจะหาย
+- **remote:** `origin` → https://github.com/peeraponggis/online · push ได้ผ่าน Git Credential Manager แล้ว
 - **ยังไม่ได้ตั้ง git identity ระดับเครื่อง** — commit ใหม่ต้องใช้
   `git -c user.name="..." -c user.email="..." commit` หรือตั้ง config เองก่อน
 - **state อยู่ใน localStorage** — แก้ได้จากฝั่ง client ไม่ใช่แหล่งความจริง

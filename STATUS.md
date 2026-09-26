@@ -1,7 +1,8 @@
 # สถานะโปรเจกต์ LMS
 
-> อัปเดตล่าสุด: **2026-09-26 11:45**
+> อัปเดตล่าสุด: **2026-09-26 12:40**
 > โฟลเดอร์: `C:\LocalAI\courseweb`
+> remote: https://github.com/peeraponggis/online (branch `main`)
 > เวอร์ชัน HTML: http://localhost:8080 (หลังรัน `node server.js 8080`)
 > เวอร์ชัน Next.js: http://localhost:3000 (หลังรัน `npm.cmd run dev`)
 
@@ -124,6 +125,9 @@ gradient `emerald-500 → green-600` ทำให้ข้อความสี�
 | 1 | เบราว์เซอร์อื่น (Chrome, Firefox, Safari) | ทดสอบด้วย Microsoft Edge เท่านั้น |
 | 2 | screen reader / accessibility audit เต็มรูปแบบ | ตรวจแค่ contrast และ aria attribute ที่ระบุไว้ |
 | 3 | เครื่องจริง (iOS Safari, Android Chrome) | ทดสอบด้วย viewport จำลองใน Edge เท่านั้น |
+
+**ไม่มีงานค้างที่ผมทำต่อได้** — ทั้งสองข้อที่เคยเหลือ (UI ในเบราว์เซอร์, remote repo)
+ปิดครบแล้วในรอบนี้
 
 ---
 
@@ -322,13 +326,15 @@ C:\LocalAI\courseweb\
 - state อยู่ใน localStorage แก้ได้จากฝั่ง client
 - **ห้ามใช้ขายจริง** จนกว่าจะต่อ SlipOK/EasySlip + เก็บสลิบใน private bucket
 
-### โปรเจกต์มี git แล้ว
-ตั้ง `git init` และ commit ครั้งแรกแล้ว (`2e2c487` · 50 ไฟล์ · 10,500 บรรทัด)
+### โปรเจกต์มี remote แล้ว
+- **remote:** `origin` → `https://github.com/peeraponggis/online.git`
+- commit ล่าสุด: `021c22e` (merge) · branch `main` ตั้ง upstream ไว้ที่ `origin/main`
+- ประวัติของทั้งสองฝั่งถูกเก็บไว้ครบ (merge commit ไม่ได้ force-push ทับ)
 - มี `.gitignore` ตัด `node_modules/` `.next/` `out/` `.env*` แล้ว
 - มี `.gitattributes` บังคับ LF (แต่ `.ps1` เป็น CRLF เพราะ PowerShell ต้องการ)
-- **ยังไม่มี remote** — ถ้าจะ push ต้องสร้าง repo ที่ GitHub/GitLab ก่อน
 - `git config user.name/user.email` ยังไม่ได้ตั้งระดับเครื่อง
-  (commit นี้ใช้ `-c` แบบครั้งเดียว) ถ้าจะ commit ครั้งถัดไปต้องใส่ `-c` อีก หรือตั้ง config เอง
+  (commit ใช้ `-c` แบบครั้งเดียว) ถ้าจะ commit ครั้งถัดไปต้องใส่ `-c` อีก หรือตั้ง config เอง
+  (Git Credential Manager ทำให้ push ได้โดยไม่ต้องตั้ง token ใน git เอง)
 
 ### PowerShell บนเครื่องนี้
 - **ห้ามใช้ `&&`** — PowerShell 5.1 ไม่รองรับ ใช้ `;` แทน
@@ -353,7 +359,6 @@ C:\LocalAI\courseweb\
 
 ### C — สุขอนามัยของโปรเจกต์
 1. ตั้ง `git config user.name` / `user.email` ระดับเครื่อง (ตอนนี้ใช้ `-c` แบบครั้งเดียว)
-2. สร้าง remote repo แล้ว `git remote add origin` + push
 
 ---
 
